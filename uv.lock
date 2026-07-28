@@ -227,7 +227,7 @@ wheels = [
 ]
 
 [[package]]
-name = "ctb-telegram-bot"
+name = "ctb-platform-bot"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
