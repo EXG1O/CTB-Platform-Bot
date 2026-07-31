@@ -2,7 +2,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.types import Update
 
-from core.settings import APP_TOKEN, APP_URL, BOT_TOKEN, REDIS_URL
+from core.settings import APP_URL, BOT_TOKEN, REDIS_URL, TELEGRAM_TOKEN
 from service.client import ServiceClient
 
 from .handlers import router
@@ -35,7 +35,9 @@ async def feed_update(data: Any) -> None:
 
 async def start() -> None:
     await bot.set_webhook(
-        str(APP_URL / 'telegram/'), allowed_updates=[], secret_token=APP_TOKEN
+        str(APP_URL / 'telegram' / 'webhook/'),
+        allowed_updates=[],
+        secret_token=TELEGRAM_TOKEN,
     )
 
 

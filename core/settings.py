@@ -22,12 +22,13 @@ os.makedirs(LOGS_DIR, exist_ok=True)
 MODE: Final[Mode] = Mode(os.getenv('MODE', Mode.DEBUG).lower())
 
 USER_AGENT: Final[str] = 'ConstructorTelegramBots (constructor.exg1o.org; platform-bot)'
+
 REDIS_URL: Final[str] = os.environ['REDIS_URL']
 BOT_TOKEN: Final[str] = os.environ['BOT_TOKEN']
-TELEGRAM_TOKEN: Final[str] = secrets.token_hex(32)
 
 APP_URL: Final[URL] = URL(os.environ['APP_URL'])
 APP_TOKEN: Final[str] = hashlib.sha256(BOT_TOKEN.encode()).hexdigest()
+TELEGRAM_TOKEN: Final[str] = secrets.token_hex(32)
 
 SERVICE_URL: Final[URL] = URL(os.environ['SERVICE_URL'])
 SERVICE_SOCKET: Final[Path | None] = (
