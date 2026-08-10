@@ -1,75 +1,77 @@
-from httpcore import AsyncConnectionPool, Response
-from yarl import URL
-import msgspec
+import httpx
+import orjson
 
-from core.exceptions import HTTPError
-from core.msgspec import json_encoder
 from core.settings import SERVICE_SOCKET, SERVICE_TOKEN, SERVICE_URL, USER_AGENT
 
-from typing import Any, Final, overload
+from .models import ServiceObject
+
+from http import HTTPMethod
+from typing import Any, overload
 import logging
 
 logger = logging.getLogger(__name__)
 
-ROOT_URL: Final[URL] = SERVICE_URL / 'api' / 'platform-bot/'
-HEADERS: Final[dict[bytes | str, bytes | str]] = {
-    b'User-Agent': USER_AGENT.encode(),
-    b'Content-Type': b'application/json',
-    b'Authorization': f'Token {SERVICE_TOKEN}'.encode(),
-}
-
 
 class ServiceClient:
     def __init__(self) -> None:
-        self._pool = AsyncConnectionPool(
-            max_connections=25,
-            max_keepalive_connections=10,
-            keepalive_expiry=12,
-            uds=str(SERVICE_SOCKET) if SERVICE_SOCKET else None,
+        self._client = httpx.AsyncClient(
+            base_url=str(SERVICE_URL / 'api' / 'platform-bot/'),
+            headers={
+                'User-Agent': USER_AGENT,
+                'Authorization': f'Token {SERVICE_TOKEN}',
+            },
+            transport=httpx.AsyncHTTPTransport(
+                trust_env=False,
+                limits=httpx.Limits(
+                    max_connections=100,
+                    max_keepalive_connections=20,
+                    keepalive_expiry=6,
+                ),
+                uds=str(SERVICE_SOCKET) if SERVICE_SOCKET else None,
+                retries=3,
+            ),
         )
 
     async def close(self) -> None:
-        await self._pool.aclose()
+        await self._client.aclose()
 
     @overload
-    async def _request[T](
+    async def _request[T: ServiceObject](
         self,
-        method: str,
-        url: str,
-        decoder: msgspec.json.Decoder[T],
-        data: Any | None = None,
+        method: HTTPMethod,
+        endpoint: str,
+        response_model: type[T],
+        json: Any | None = None,
     ) -> T: ...
 
     @overload
     async def _request(
         self,
-        method: str,
-        url: str,
-        decoder: None = None,
-        data: Any | None = None,
+        method: HTTPMethod,
+        endpoint: str,
+        response_model: None = None,
+        json: Any | None = None,
     ) -> None: ...
 
-    async def _request[T](
+    async def _request[T: ServiceObject](
         self,
-        method: str,
-        url: str,
-        decoder: msgspec.json.Decoder[T] | None = None,
-        data: Any | None = None,
+        method: HTTPMethod,
+        endpoint: str,
+        response_model: type[T] | None = None,
+        json: Any | None = None,
     ) -> T | None:
         try:
-            response: Response = await self._pool.request(
+            response: httpx.Response = await self._client.request(
                 method,
-                url,
-                headers=HEADERS,
-                content=json_encoder.encode(data) if data is not None else None,
+                endpoint,
+                headers={'Content-Type': 'application/json'},
+                content=orjson.dumps(json) if json is not None else None,
             )
-
-            if response.status >= 400:
-                raise HTTPError(response)  # noqa: TRY301
-        except Exception as error:
+            response.raise_for_status()
+        except httpx.HTTPError as error:
             logger.exception('Failed request to the main service')
             raise error
         else:
-            if not decoder:
+            if not response_model:
                 return None
-            return decoder.decode(response.content)
+            return response_model.model_validate_json(response.content)
