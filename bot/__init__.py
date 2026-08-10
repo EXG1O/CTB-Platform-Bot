@@ -8,16 +8,16 @@ from service.client import ServiceClient
 from .handlers import router
 from .session import Session
 
+from collections.abc import Awaitable
 from typing import Any
 import logging
 
 logger = logging.getLogger(__name__)
 
 bot = Bot(token=BOT_TOKEN, session=Session())
+service = ServiceClient()
 
-dispatcher = Dispatcher(
-    service=ServiceClient(), storage=RedisStorage.from_url(REDIS_URL)
-)
+dispatcher = Dispatcher(service=service, storage=RedisStorage.from_url(REDIS_URL))
 dispatcher.include_router(router)
 
 
@@ -41,8 +41,17 @@ async def start() -> None:
     )
 
 
+async def _safe_call(coro: Awaitable[Any]) -> None:
+    try:
+        await coro
+    except Exception:
+        logger.exception('Error during shutdown')
+
+
 async def stop() -> None:
-    await bot.delete_webhook()
+    await _safe_call(bot.delete_webhook())
+    await _safe_call(bot.session.close())
+    await _safe_call(service.close())
 
 
 __all__ = ['bot', 'dispatcher', 'feed_update', 'start', 'stop']

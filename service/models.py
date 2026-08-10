@@ -1,5 +1,5 @@
-import msgspec
+from pydantic import BaseModel
 
 
-class ServiceObject(msgspec.Struct):
+class ServiceObject(BaseModel):
     pass
