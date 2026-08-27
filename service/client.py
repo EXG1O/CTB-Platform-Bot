@@ -68,9 +68,9 @@ class ServiceClient:
                 content=orjson.dumps(json) if json is not None else None,
             )
             response.raise_for_status()
-        except httpx.HTTPError as error:
-            logger.exception('Failed request to the main service')
-            raise error
+        except httpx.HTTPError:
+            logger.exception('Failed request to the main service.')
+            raise
         else:
             if not response_model:
                 return None
