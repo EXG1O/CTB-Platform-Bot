@@ -110,7 +110,7 @@ class Session(BaseSession):
                 )
             except TelegramRetryAfter as error:
                 logger.debug(
-                    'Rate limited. Retrying after %d seconds', error.retry_after
+                    'Rate limited. Retrying after %d seconds.', error.retry_after
                 )
                 await asyncio.sleep(error.retry_after)
                 continue

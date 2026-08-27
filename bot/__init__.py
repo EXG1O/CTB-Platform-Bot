@@ -45,7 +45,7 @@ async def _safe_call(coro: Awaitable[Any]) -> None:
     try:
         await coro
     except Exception:
-        logger.exception('Error during shutdown')
+        logger.exception('Error during shutdown.')
 
 
 async def stop() -> None:
