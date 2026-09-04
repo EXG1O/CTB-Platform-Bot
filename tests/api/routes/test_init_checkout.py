@@ -10,6 +10,7 @@ import service
 
 from ..base import APITestCase
 
+from collections.abc import Mapping
 from typing import Any
 from unittest.mock import AsyncMock, Mock
 
@@ -65,7 +66,7 @@ class InitCheckoutTestCase(APITestCase):
         )
 
         mock_bot_create_invoice_link.assert_awaited_once()
-        bot_create_invoice_call_kwargs: dict[str, Any] = (
+        bot_create_invoice_call_kwargs: Mapping[str, Any] = (
             mock_bot_create_invoice_link.call_args.kwargs
         )
         self.assertEqual(

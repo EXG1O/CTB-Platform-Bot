@@ -17,6 +17,7 @@ from core.settings import APP_TOKEN
 
 from ..base import APITestCase
 
+from collections.abc import Mapping
 from typing import Any, cast
 from unittest.mock import AsyncMock
 
@@ -38,7 +39,7 @@ class SendTelegramMessageTestCase(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
-        call_kwargs: dict[str, Any] = self.mock_bot_send_message.call_args.kwargs
+        call_kwargs: Mapping[str, Any] = self.mock_bot_send_message.call_args.kwargs
         self.assertEqual(call_kwargs['chat_id'], request_data.chat_ids[0])
         self.assertEqual(call_kwargs['text'], request_data.text)
         self.assertIsNone(call_kwargs['parse_mode'], TextType.HTML)
@@ -75,7 +76,7 @@ class SendTelegramMessageTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
         self.mock_bot_send_message.assert_awaited_once()
 
-        call_kwargs: dict[str, Any] = self.mock_bot_send_message.call_args.kwargs
+        call_kwargs: Mapping[str, Any] = self.mock_bot_send_message.call_args.kwargs
         self.assertEqual(call_kwargs['chat_id'], request_data.chat_ids[0])
         self.assertEqual(call_kwargs['text'], request_data.text)
         self.assertTrue(call_kwargs['disable_notification'])
@@ -118,7 +119,7 @@ class SendTelegramMessageTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
         self.mock_bot_send_message.assert_awaited_once()
 
-        call_kwargs: dict[str, Any] = self.mock_bot_send_message.call_args.kwargs
+        call_kwargs: Mapping[str, Any] = self.mock_bot_send_message.call_args.kwargs
         self.assertEqual(call_kwargs['chat_id'], request_data.chat_ids[0])
         self.assertEqual(call_kwargs['text'], request_data.text)
         self.assertTrue(call_kwargs['protect_content'])
@@ -171,7 +172,7 @@ class SendTelegramMessageTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
         self.mock_bot_send_message.assert_awaited_once()
 
-        call_kwargs: dict[str, Any] = self.mock_bot_send_message.call_args.kwargs
+        call_kwargs: Mapping[str, Any] = self.mock_bot_send_message.call_args.kwargs
         self.assertEqual(call_kwargs['chat_id'], request_data.chat_ids[0])
         self.assertEqual(call_kwargs['text'], request_data.text)
         self.assertEqual(call_kwargs['parse_mode'], aiogram.enums.ParseMode.HTML)
