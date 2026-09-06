@@ -14,7 +14,6 @@ from .schemas import (
     SendTelegramMessageRequest,
 )
 
-from itertools import batched
 from typing import TYPE_CHECKING
 import asyncio
 import logging
@@ -45,28 +44,29 @@ async def init_checkout(data: InitCheckoutRequest) -> InitCheckoutResponse:
 
 
 async def _refund_payments(data: list[RefundPaymentRequest]) -> None:
-    for data_batch in batched(data, 15, strict=False):
-        results: list[BaseException | None] = await asyncio.gather(
-            *[
+    results: list[BaseException | None] = await asyncio.gather(
+        *[
+            bot.limiter.throttle_external_call(
                 core.payments.refund_payment(
                     user_service_id=item.user_service_id,
                     user_telegram_id=item.user_telegram_id,
                     invoice_id=item.invoice_id,
                     telegram_charge_id=item.telegram_charge_id,
                 )
-                for item in data_batch
-            ],
-            return_exceptions=True,
-        )
+            )
+            for item in data
+        ],
+        return_exceptions=True,
+    )
 
-        for result, item in zip(results, data_batch, strict=True):
-            if isinstance(result, BaseException):
-                logger.error(
-                    'Failed to refund payment (user_service_id=%d, invoice_id=%d).',
-                    item.user_service_id,
-                    item.invoice_id,
-                    exc_info=result,
-                )
+    for result, item in zip(results, data, strict=True):
+        if isinstance(result, BaseException):
+            logger.error(
+                'Failed to refund payment (user_service_id=%d, invoice_id=%d).',
+                item.user_service_id,
+                item.invoice_id,
+                exc_info=result,
+            )
 
 
 @app_router.post('/refund-payments/', status_code=status.HTTP_202_ACCEPTED)
@@ -117,9 +117,9 @@ async def _send_telegram_message(data: SendTelegramMessageRequest) -> None:
             ]
         )
 
-    for chat_id_batch in batched(data.chat_ids, 15, strict=False):
-        results: list[BaseException | aiogram.types.Message] = await asyncio.gather(
-            *[
+    results: list[BaseException | aiogram.types.Message] = await asyncio.gather(
+        *[
+            bot.limiter.throttle_external_call(
                 bot.bot.send_message(
                     chat_id=chat_id,
                     text=data.text,
@@ -129,18 +129,19 @@ async def _send_telegram_message(data: SendTelegramMessageRequest) -> None:
                     disable_notification=data.disable_notification,
                     protect_content=data.protect_content,
                 )
-                for chat_id in chat_id_batch
-            ],
-            return_exceptions=True,
-        )
+            )
+            for chat_id in data.chat_ids
+        ],
+        return_exceptions=True,
+    )
 
-        for result, chat_id in zip(results, chat_id_batch, strict=True):
-            if isinstance(result, BaseException):
-                logger.error(
-                    'Failed to send Telegram message to chat (chat_id=%d).',
-                    chat_id,
-                    exc_info=result,
-                )
+    for result, chat_id in zip(results, data.chat_ids, strict=True):
+        if isinstance(result, BaseException):
+            logger.error(
+                'Failed to send Telegram message to chat (chat_id=%d).',
+                chat_id,
+                exc_info=result,
+            )
 
 
 @app_router.post('/send-telegram-message/', status_code=status.HTTP_202_ACCEPTED)

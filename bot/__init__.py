@@ -8,6 +8,7 @@ from core.settings import APP_URL, BOT_TOKEN, REDIS_URL, TELEGRAM_TOKEN
 import service
 
 from .handlers import router
+from .limiter import Limiter
 from .middlewares import UserMiddleware, UserTermsCheckMiddleware
 from .models import InvoicePayload
 from .session import Session
@@ -23,7 +24,8 @@ _ALLOWED_UPDATES: Final[tuple[UpdateType, ...]] = (
     UpdateType.PRE_CHECKOUT_QUERY,
 )
 
-bot = Bot(token=BOT_TOKEN, session=Session())
+limiter = Limiter()
+bot = Bot(token=BOT_TOKEN, session=Session(limiter=limiter))
 service_client = service.Client()
 
 dispatcher = Dispatcher(
@@ -85,6 +87,7 @@ async def stop() -> None:
 
 __all__ = [
     'InvoicePayload',
+    'limiter',
     'bot',
     'service_client',
     'dispatcher',
