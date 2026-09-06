@@ -5,11 +5,12 @@ from aiogram.methods import TelegramMethod
 from aiogram.methods.base import TelegramType
 from aiogram.types import InputFile
 
-from aiolimiter import AsyncLimiter
 import httpx
 import orjson
 
 from core.settings import USER_AGENT
+
+from .limiter import Limiter
 
 from collections.abc import AsyncGenerator
 from typing import Any, cast
@@ -20,12 +21,13 @@ logger = logging.getLogger(__name__)
 
 
 class Session(BaseSession):
-    def __init__(self) -> None:
+    def __init__(self, limiter: Limiter) -> None:
         super().__init__(
             json_loads=orjson.loads,
             json_dumps=lambda data: orjson.dumps(data).decode(),
         )
 
+        self._limiter = limiter
         self._client = httpx.AsyncClient(
             headers={'User-Agent': USER_AGENT},
             transport=httpx.AsyncHTTPTransport(
@@ -40,30 +42,8 @@ class Session(BaseSession):
             ),
         )
 
-        self._global_limiter = AsyncLimiter(max_rate=30, time_period=1)
-        self._user_limiters: dict[int, AsyncLimiter] = {}
-        self._group_limiters: dict[int, AsyncLimiter] = {}
-
     async def close(self) -> None:
         await self._client.aclose()
-
-    def _get_chat_limiter(self, chat_id: int) -> AsyncLimiter:
-        if chat_id > 0:
-            return self._user_limiters.setdefault(
-                chat_id, AsyncLimiter(max_rate=1, time_period=1)
-            )
-
-        return self._group_limiters.setdefault(
-            chat_id, AsyncLimiter(max_rate=20, time_period=60)
-        )
-
-    async def _acquire_rate_limit(self, chat_id: int | None = None) -> None:
-        if chat_id is not None:
-            async with self._get_chat_limiter(chat_id), self._global_limiter:
-                return
-
-        async with self._global_limiter:
-            return
 
     async def make_request(
         self,
@@ -72,7 +52,7 @@ class Session(BaseSession):
         timeout: int | None = None,  # noqa: ASYNC109
     ) -> TelegramType:
         chat_id: int | None = getattr(method, 'chat_id', None)
-        await self._acquire_rate_limit(chat_id)
+        await self._limiter.acquire(chat_id)
 
         url: str = self.api.api_url(token=bot.token, method=method.__api_method__)
         data: dict[str, Any] = {}

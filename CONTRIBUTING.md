@@ -80,11 +80,26 @@ To run all code quality checks (formatting, linting, and type checking) at once,
 ruff format && ruff check --fix && mypy .
 ```
 
+## Testing
+
+We prioritize code quality and early bug detection through tests. Run the tests with:
+
+```bash
+python -m unittest discover -s tests -t .
+```
+
+Please add tests for any new functionality to ensure complete coverage.
+
+## Logs
+
+All log files can be found in the `logs` directory.
+
 ## Pull Requests
 
 When submitting a PR, ensure that:
 
 1. You have read and agree to the [CLA](/CLA) by including the statement "I confirm that I have read and agree to the CLA." in your PR description.
 2. Your code follows the project's coding standards.
-3. Your changes are well-documented with clear commit messages.
-4. Each PR should address a single issue or feature.
+3. All tests pass successfully.
+4. Your changes are well-documented with clear commit messages.
+5. Each PR should address a single issue or feature.

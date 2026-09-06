@@ -8,6 +8,14 @@ on:
     branches:
       - master
 
+env:
+  REDIS_URL: redis://localhost:6379
+  BOT_TOKEN: 123456789:test
+  APP_URL: http://localhost:8000
+  APP_TOKEN: 123456789
+  SERVICE_URL: http://localhost:8001
+  SERVICE_TOKEN: 987654321
+
 jobs:
   code-quality:
     name: Code Quality Checks
@@ -34,3 +42,26 @@ jobs:
 
       - name: Run mypy
         run: uv run mypy .
+  tests:
+    name: Run Tests
+    needs: code-quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: 3.14
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --locked --no-dev
+
+      - name: Run tests
+        run: uv run -m unittest discover -s tests -t .

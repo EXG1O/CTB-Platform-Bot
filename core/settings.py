@@ -5,7 +5,6 @@ from .enums import Mode
 
 from pathlib import Path
 from typing import Final
-import hashlib
 import logging.config
 import os
 import secrets
@@ -25,16 +24,16 @@ USER_AGENT: Final[str] = 'ConstructorTelegramBots (constructor.exg1o.org; platfo
 
 REDIS_URL: Final[str] = os.environ['REDIS_URL']
 BOT_TOKEN: Final[str] = os.environ['BOT_TOKEN']
-
-APP_URL: Final[URL] = URL(os.environ['APP_URL'])
-APP_TOKEN: Final[str] = hashlib.sha256(BOT_TOKEN.encode()).hexdigest()
 TELEGRAM_TOKEN: Final[str] = secrets.token_hex(32)
 
-SERVICE_URL: Final[URL] = URL(os.environ['SERVICE_URL'])
+APP_URL: Final[URL] = URL(os.environ['APP_URL'])
+APP_TOKEN: Final[str] = os.environ['APP_TOKEN']
+
+SERVICE_URL: Final[URL] = URL(os.getenv('SERVICE_URL', 'http://localhost'))
 SERVICE_SOCKET: Final[Path | None] = (
     Path(path) if (path := os.getenv('SERVICE_SOCKET')) else None
 )
-SERVICE_TOKEN: Final[str] = APP_TOKEN
+SERVICE_TOKEN: Final[str] = os.environ['SERVICE_TOKEN']
 
 
 logging.config.dictConfig(
