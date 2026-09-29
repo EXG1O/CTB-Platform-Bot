@@ -103,8 +103,8 @@ class Client:
 
     async def get_invoice(self, id: int, user_id: int, type: InvoiceType) -> Invoice:
         return await self._request(
-            HTTPMethod.POST,
-            f'/users/{user_id}/{type}/invoices/',
+            HTTPMethod.GET,
+            f'/users/{user_id}/{type}/invoices/{id}/',
             response_model=Invoice,
         )
 

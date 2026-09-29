@@ -10,7 +10,7 @@ from .data import WELCOME_KEYBOARD, WELCOME_TEXT
 router = Router(name='Home')
 
 
-@router.message(CommandStart)
+@router.message(CommandStart())
 @accepted_terms_not_required
 async def start_command_handler(message: Message, user: User) -> None:
     await message.reply(
