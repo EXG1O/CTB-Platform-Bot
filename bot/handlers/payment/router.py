@@ -9,6 +9,7 @@ from ...flags import auth_not_required
 from ...models import InvoicePayload, User
 from .data import (
     PAYMENT_FAILED_TEXT,
+    PAYMENT_SUCCESS_KEYBOARD,
     PAYMENT_SUCCESS_TEXT,
     PAYMENT_SUPPORT_COMMAND,
     PAYMENT_SUPPORT_TEXT,
@@ -82,6 +83,7 @@ async def success_payment_handler(
                 amount_stars=invoice.amount_stars,
             ),
             parse_mode=ParseMode.HTML,
+            reply_markup=PAYMENT_SUCCESS_KEYBOARD,
         )
 
 
