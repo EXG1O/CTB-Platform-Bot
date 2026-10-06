@@ -34,9 +34,9 @@ class Session(BaseSession):
                 trust_env=False,
                 http2=True,
                 limits=httpx.Limits(
-                    max_connections=30,
-                    max_keepalive_connections=10,
-                    keepalive_expiry=30,
+                    max_connections=100,
+                    max_keepalive_connections=20,
+                    keepalive_expiry=60,
                 ),
                 retries=2,
             ),
