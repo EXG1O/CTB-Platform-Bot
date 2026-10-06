@@ -36,6 +36,14 @@ SERVICE_SOCKET: Final[Path | None] = (
 SERVICE_TOKEN: Final[str] = os.environ['SERVICE_TOKEN']
 
 
+TELEGRAM_GLOBAL_RATE_LIMIT: Final[float] = 30
+TELEGRAM_GLOBAL_RATE_PERIOD: Final[float] = 1
+TELEGRAM_USER_RATE_LIMIT: Final[float] = 1
+TELEGRAM_USER_RATE_PERIOD: Final[float] = 1
+TELEGRAM_GROUP_RATE_LIMIT: Final[float] = 20
+TELEGRAM_GROUP_RATE_PERIOD: Final[float] = 60
+
+
 logging.config.dictConfig(
     {
         'version': 1,
