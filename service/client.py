@@ -26,7 +26,7 @@ class Client:
                 limits=httpx.Limits(
                     max_connections=100,
                     max_keepalive_connections=20,
-                    keepalive_expiry=6,
+                    keepalive_expiry=60,
                 ),
                 uds=str(SERVICE_SOCKET) if SERVICE_SOCKET else None,
                 retries=2,
