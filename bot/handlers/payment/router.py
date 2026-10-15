@@ -1,8 +1,9 @@
 from aiogram import F, Router
 from aiogram.enums import ParseMode
 from aiogram.filters import Command
-from aiogram.types import Message, PreCheckoutQuery, SuccessfulPayment
+from aiogram.types import FSInputFile, Message, PreCheckoutQuery, SuccessfulPayment
 
+from core.settings import RESOURCES_DIR
 import service
 
 from ...flags import auth_not_required
@@ -61,7 +62,7 @@ async def success_payment_handler(
         payload: InvoicePayload = InvoicePayload.model_validate_json(
             payment.invoice_payload, by_alias=True
         )
-        invoice: service.Invoice = await service_client.update_invoice_status(
+        await service_client.update_invoice_status(
             id=payload.id,
             user_id=user.service.id,
             type=service.InvoiceType.PREMIUM,
@@ -77,11 +78,9 @@ async def success_payment_handler(
         await message.answer(PAYMENT_FAILED_TEXT, parse_mode=ParseMode.HTML)
         raise
     else:
-        await message.answer(
-            PAYMENT_SUCCESS_TEXT.format(
-                period_days=invoice.period_months * 30,
-                amount_stars=invoice.amount_stars,
-            ),
+        await message.answer_photo(
+            FSInputFile(RESOURCES_DIR / 'success_payment.png', filename='yasushi.png'),
+            caption=PAYMENT_SUCCESS_TEXT,
             parse_mode=ParseMode.HTML,
             reply_markup=PAYMENT_SUCCESS_KEYBOARD,
         )
