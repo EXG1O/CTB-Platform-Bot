@@ -13,6 +13,7 @@ load_dotenv()
 
 
 BASE_DIR: Final[Path] = Path(__file__).resolve().parent.parent
+RESOURCES_DIR: Final[Path] = BASE_DIR / 'resources'
 LOGS_DIR: Final[Path] = BASE_DIR / 'logs' / 'platform-bot'
 
 os.makedirs(LOGS_DIR, exist_ok=True)
