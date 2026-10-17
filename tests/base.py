@@ -1,9 +1,13 @@
 from unittest.mock import AsyncMock, patch
+import logging
 import unittest
 
 
 class BaseTestCase(unittest.TestCase):
     def setUp(self) -> None:
+        logging.disable(logging.CRITICAL)
+        self.addCleanup(logging.disable, logging.NOTSET)
+
         self.patcher_bot = patch('bot.bot', new_callable=AsyncMock)
         self.patcher_service_client = patch(
             'bot.service_client', new_callable=AsyncMock
