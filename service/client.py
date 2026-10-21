@@ -1,3 +1,4 @@
+from yarl import URL
 import httpx
 import orjson
 
@@ -15,8 +16,12 @@ logger = logging.getLogger(__name__)
 
 class Client:
     def __init__(self) -> None:
+        # Unix socket serves plain HTTP; httpx would otherwise start TLS over it.
+        base_url: URL = (
+            SERVICE_URL.with_scheme('http') if SERVICE_SOCKET else SERVICE_URL
+        )
         self._client = httpx.AsyncClient(
-            base_url=str(SERVICE_URL / 'api' / 'platform-bot/'),
+            base_url=str(base_url / 'api' / 'platform-bot/'),
             headers={
                 'User-Agent': USER_AGENT,
                 'Authorization': f'Token {SERVICE_TOKEN}',
